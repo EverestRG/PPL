@@ -54,7 +54,14 @@ namespace Compiler
                             csfiles.Add(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + imports + ".cs");
                             filetext = filetext.Replace($"import {imports} as", "");
                         }
-                        maker.MakeProj(args[0], csfiles);
+                        try
+                        {
+                            maker.MakeProj(args[0], csfiles, args[2]);
+                        }
+                        catch
+                        {
+                            maker.MakeProj(args[0], csfiles);
+                        }
                         FileInfo fi = new FileInfo(args[0]);
                         string Full = fi.DirectoryName + "\\" + Path.GetFileNameWithoutExtension(args[1]) + ".csproj";
                         string cmd = $"\"C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\msbuild.exe\" \"{Full}\"";
@@ -82,7 +89,7 @@ namespace Compiler
                     }
                     try
                     {
-                        if (args[2].ToLower() != "true")
+                        if (args[3].ToLower() != "true")
                         {
                             File.Delete(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + args[1] + ".csproj");
                             for (int i = 0; i < csfiles.Count; i++)

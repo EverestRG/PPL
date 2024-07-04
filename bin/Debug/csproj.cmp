@@ -6,6 +6,7 @@
     <Optimize>true</Optimize>
     <AssemblyName>%NAME%</AssemblyName>
     <OutputPath>bin\</OutputPath>
+    %ICONPATH%
   </PropertyGroup>
   <ItemGroup>
     %USINGS%

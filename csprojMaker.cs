@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 
 namespace Compiler
 {
@@ -20,7 +21,7 @@ namespace Compiler
 
             return "";
         }
-        public void MakeProj(string path, List<string> csfiles)
+        public void MakeProj(string path, List<string> csfiles, string icon = "")
         {
             Console.WriteLine("Building .csproj...");
             string filetext = File.ReadAllText($"{Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\\csproj.cmp");
@@ -66,6 +67,14 @@ namespace Compiler
                 }
             }
             filetext = filetext.Replace("%NAME%", nmspc);
+            if (icon != "")
+            {
+                filetext = filetext.Replace("%ICONPATH%", $"<ApplicationIcon>{icon}</ApplicationIcon>");
+            }
+            else
+            {
+                filetext = filetext.Replace("\n    %ICONPATH%", "");
+            }
             FileInfo fi = new FileInfo(path);
             File.WriteAllText(fi.DirectoryName + "\\" + nmspc + ".csproj", $@"{filetext}", encoding: System.Text.Encoding.UTF8);
             Console.WriteLine("Built .csproj successfully!");
