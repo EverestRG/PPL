@@ -16,14 +16,28 @@ namespace Compiler
         {
             if (args.Length > 0)
             {
+                bool keyp = true;
                 string[] lastIndex = Path.GetFileName(args[0]).Split('.');
+                ConsoleKeyInfo cki;
                 if (lastIndex[lastIndex.Length-1].ToLower() == "ppl")
                 {
+                    bool cmpinterrupt = true;
                     csprojMaker maker = new csprojMaker();
                     csmaker csmaker = new csmaker();
-                    string filetext = File.ReadAllText(args[0]);
-                    Console.WriteLine("Working with:" + Environment.NewLine + $@"{filetext}");
+                    string filetext = "";
+                    string curpth = "";
+                    if (args[0].Replace(Path.GetFileName(args[0]), "") != "")
+                    {
+                        filetext = File.ReadAllText(args[0]);
+                        curpth = args[0];
+                    }
+                    else
+                    {
+                        filetext = File.ReadAllText(Directory.GetCurrentDirectory() + "\\" + args[0]);
+                        curpth = Directory.GetCurrentDirectory() + "\\" + args[0];
+                    }
                     string newfile = $"{lastIndex[lastIndex.Length - 2]}";
+                    Console.WriteLine($"Working with: {newfile}.ppl");
                     List<string> csfiles = new List<string>();
                     void comp(string cmdd)
                     {
@@ -43,77 +57,97 @@ namespace Compiler
                     try
                     {
                         Console.WriteLine($"Naming exe as {Path.GetFileNameWithoutExtension(args[1])}");
-                        csmaker.BuildCS(args[0], Path.GetFileNameWithoutExtension(args[1]), true);
+                        bool compiling = true;
+                        if (csmaker.BuildCS(args[0], Path.GetFileNameWithoutExtension(args[1]), true)) { } else { compiling = false; }
                         csfiles.Add(args[0].Replace(".ppl", ".cs"));
                         string imports = "nn";
                         while (imports != "")
                         {
                             imports = maker.getBetween(filetext, "import ", " as");
                             if (imports == "") { break; }
-                            csmaker.BuildCS(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + imports + ".ppl", args[1], false);
-                            csfiles.Add(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + imports + ".cs");
+                            if (compiling) { if (csmaker.BuildCS(curpth.Replace(Path.GetFileName(curpth), "") + imports + ".ppl", args[1], false)) { } else { compiling = false; } }
+                            csfiles.Add(curpth.Replace(Path.GetFileName(curpth), "") + imports + ".cs");
                             filetext = filetext.Replace($"import {imports} as", "");
                         }
                         try
                         {
-                            maker.MakeProj(args[0], csfiles, args[2]);
+                            if (compiling) { maker.MakeProj(args[0], csfiles, args[3]); }
                         }
                         catch
                         {
-                            maker.MakeProj(args[0], csfiles);
+                            if (compiling) { maker.MakeProj(args[0], csfiles); }
                         }
                         FileInfo fi = new FileInfo(args[0]);
                         string Full = fi.DirectoryName + "\\" + Path.GetFileNameWithoutExtension(args[1]) + ".csproj";
                         string cmd = $"\"C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\msbuild.exe\" \"{Full}\"";
-                        comp(cmd);
+                        if (compiling) { comp(cmd); } else { Console.WriteLine("Compilation unsuccessfull"); cmpinterrupt = false; }
                     }
                     catch
                     {
                         Console.WriteLine($"Naming exe as {newfile}");
-                        csmaker.BuildCS(args[0], newfile, true);
-                        csfiles.Add(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + newfile + ".cs");
+                        bool compiling = true;
+                        if (csmaker.BuildCS(args[0], newfile, true)) { } else { compiling = false; }
+                        csfiles.Add(curpth.Replace(Path.GetFileName(curpth), "") + newfile + ".cs");
                         string imports = "nn";
                         while (imports != "")
                         {
                             imports = maker.getBetween(filetext, "import ", " as");
                             if (imports == "") { break; }
-                            csmaker.BuildCS(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + imports + ".ppl", newfile, false);
-                            csfiles.Add(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + imports + ".cs");
+                            if (compiling) { if (csmaker.BuildCS(curpth.Replace(Path.GetFileName(curpth), "") + imports + ".ppl", newfile, false)) { } else { compiling = false; } }
+                            csfiles.Add(curpth.Replace(Path.GetFileName(curpth), "") + imports + ".cs");
                             filetext = filetext.Replace($"import {imports} as", "");
                         }
-                        maker.MakeProj(args[0], csfiles);
+                        if (compiling) { maker.MakeProj(args[0], csfiles); }
                         FileInfo fi = new FileInfo(args[0]);
                         string Full = fi.DirectoryName + "\\" + newfile + ".csproj";
                         string cmd = $"\"C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\msbuild.exe\" \"{Full}\"";
-                        comp(cmd);
+                        if (compiling) { comp(cmd); } else { Console.WriteLine("Compilation interrupted"); cmpinterrupt = false; }
                     }
                     try
                     {
-                        if (args[3].ToLower() != "true")
+                        if (args[2].ToLower() != "true")
                         {
-                            File.Delete(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + args[1] + ".csproj");
+                            Directory.Delete(curpth.Replace(Path.GetFileName(curpth), "") + "\\obj", true);
+                            File.Delete(curpth.Replace(Path.GetFileName(curpth), "") + args[1] + ".csproj");
                             for (int i = 0; i < csfiles.Count; i++)
                             {
                                 File.Delete(csfiles[i]);
                             }
                         }
+                        if (!File.Exists(curpth.Replace(Path.GetFileName(curpth), "") + "\\bin\\" + args[1] + ".exe")) { cmpinterrupt = false; }
                     }
                     catch
                     {
                         try
                         {
-                            File.Delete(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + args[1] + ".csproj");
+                            Directory.Delete(curpth.Replace(Path.GetFileName(curpth), "") + "\\obj", true);
+                            File.Delete(curpth.Replace(Path.GetFileName(curpth), "") + args[1] + ".csproj");
+                            if (!File.Exists(curpth.Replace(Path.GetFileName(curpth), "") + "\\bin\\" + args[1] + ".exe")) {  cmpinterrupt = false; }
                         }
                         catch
                         {
-                            File.Delete(Path.GetFullPath(args[0].Replace(Path.GetFileName(args[0]), "")) + newfile + ".csproj");
+                            Directory.Delete(curpth.Replace(Path.GetFileName(curpth), "") + "\\obj", true);
+                            File.Delete(curpth.Replace(Path.GetFileName(curpth), "") + newfile + ".csproj");
+                            if (!File.Exists(curpth.Replace(Path.GetFileName(curpth), "") + "\\bin\\" + newfile + ".exe")) { cmpinterrupt = false; }
                         }
                         for (int i = 0; i < csfiles.Count; i++)
                         {
                             File.Delete(csfiles[i]);
                         }
                     }
-                    Console.WriteLine("Compilation done!");
+                    if (cmpinterrupt) { Console.WriteLine("Compilation done!"); }
+                    else
+                    {
+                        Console.WriteLine("Press any key to close");
+                        while (keyp)
+                        {
+                            cki = Console.ReadKey();
+                            if (cki.Equals(cki))
+                            {
+                                keyp = false;
+                            }
+                        }
+                    }
                 }
                 else
                 {

@@ -69,14 +69,14 @@ namespace Compiler
             filetext = filetext.Replace("%NAME%", nmspc);
             if (icon != "")
             {
-                filetext = filetext.Replace("%ICONPATH%", $"<ApplicationIcon>{icon}</ApplicationIcon>");
+                filetext = filetext.Replace("%ICONPATH%", icon);
             }
             else
             {
-                filetext = filetext.Replace("\n    %ICONPATH%", "");
+                filetext = filetext.Replace("\n    <ApplicationIcon>%ICONPATH%</ApplicationIcon>", "");
             }
             FileInfo fi = new FileInfo(path);
-            File.WriteAllText(fi.DirectoryName + "\\" + nmspc + ".csproj", $@"{filetext}", encoding: System.Text.Encoding.UTF8);
+            File.WriteAllText(fi.DirectoryName + "\\" + nmspc + ".csproj", $"{filetext}", encoding: System.Text.Encoding.UTF8);
             Console.WriteLine("Built .csproj successfully!");
         }
     }
