@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Optimize>true</Optimize>
     <AssemblyName>%NAME%</AssemblyName>
     <OutputPath>bin\</OutputPath>
-    %ICONPATH%
+    <DebugType>pdbonly</DebugType>
   </PropertyGroup>
   <ItemGroup>
     %USINGS%
@@ -14,8 +16,12 @@
   <ItemGroup>
     %CSFILES%
   </ItemGroup>
+  <PropertyGroup>
+    <ApplicationIcon>%ICONPATH%</ApplicationIcon>
+  </PropertyGroup>
   <Target Name="Build">
     <MakeDir Directories="$(OutputPath)" Condition="!Exists('$(OutputPath)')" />
     <Csc Sources="@(Compile)" OutputAssembly="$(OutputPath)$(AssemblyName).exe" />
   </Target>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
